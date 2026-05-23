@@ -1,0 +1,13 @@
+Testing: 'wireless mouse'
+
+eBay (port 8003): 0 products
+  (no products returned)
+
+Google (port 8004): 8 products
+  [INR] Ambrane Wireless Mouse with 2.4GHz USB Nano Dongle | INR 249.0 | 0.0/5
+  [INR] Croma 2.4 GHz Wireless Optical Mouse with Power Saving Feature | INR 259.0 | 3.1/5
+  [INR] Zebronics Zeb-Jaguar Wireless Optical Mouse | INR 299.0 | 4.7/5
+  [INR] Zebronics Blanc Slim Wireless Mouse | INR 429.0 | 4.8/5
+  [INR] Portronics Toad 8 Transparent Rechargeable Bluetooth Mouse | INR 599.0 | 4.9/5
+
+Gateway Connect: ERROR - Expecting value: line 1 column 1 (char 0)

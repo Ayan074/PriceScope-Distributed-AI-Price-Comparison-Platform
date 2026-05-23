@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Compare product prices across Amazon, eBay, Google Shopping, Walmart & Target with distributed AI-powered analysis">
+    <title>PriceScope — Distributed Price Comparison Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="bg-particles" id="bgParticles"></div>
+
+    <header class="header">
+        <div class="header-inner">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <circle cx="16" cy="16" r="14" stroke="url(#logoGrad)" stroke-width="2.5"/>
+                        <path d="M10 16L14 20L22 12" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                                <stop stop-color="#6366f1"/>
+                                <stop offset="1" stop-color="#10b981"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1 class="logo-text">PriceScope</h1>
+                <span class="logo-badge">Distributed</span>
+            </div>
+            <div class="header-right">
+                <div class="processing-mode" id="processingMode">
+                    <span class="mode-dot" id="modeDot"></span>
+                    <span class="mode-text" id="modeText">—</span>
+                </div>
+                <div class="header-status">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span class="status-text" id="statusText">Checking services...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <section class="hero" id="heroSection">
+            <div class="hero-content">
+                <h2 class="hero-title">
+                    Find the <span class="gradient-text">best deal</span> across platforms
+                </h2>
+                <p class="hero-subtitle">
+                    Distributed comparison across Amazon, eBay, Google Shopping, Walmart & Target &mdash; powered by parallel workers, task queues & fault tolerance
+                </p>
+
+                <div class="search-container" id="searchContainer">
+                    <div class="search-box">
+                        <div class="search-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" stroke-width="2"/>
+                                <path d="M13 13L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            class="search-input"
+                            placeholder="Search any product... (e.g., iPhone 15 128GB)"
+                            autocomplete="off"
+                            spellcheck="false"
+                        >
+                        <button class="search-btn" id="searchBtn" onclick="performSearch()">
+                            <span class="btn-text">Compare</span>
+                            <span class="btn-loader" id="btnLoader">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" stroke-dasharray="40" stroke-dashoffset="10">
+                                        <animateTransform attributeName="transform" type="rotate" from="0 10 10" to="360 10 10" dur="0.8s" repeatCount="indefinite"/>
+                                    </circle>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+
+                    <div class="quick-tags">
+                        <span class="tag" onclick="quickSearch('iPhone 15 128GB')">iPhone 15</span>
+                        <span class="tag" onclick="quickSearch('Samsung Galaxy S24')">Galaxy S24</span>
+                        <span class="tag" onclick="quickSearch('Sony WH-1000XM5')">Sony XM5</span>
+                        <span class="tag" onclick="quickSearch('MacBook Air M3')">MacBook Air</span>
+                        <span class="tag" onclick="quickSearch('wireless mouse')">Wireless Mouse</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="results-section" id="resultsSection" style="display:none;">
+            <div class="results-header">
+                <div class="results-meta">
+                    <h3 class="results-title" id="resultsTitle">Results</h3>
+                    <span class="results-count" id="resultsCount"></span>
+                </div>
+                <div class="results-sources" id="resultsSources"></div>
+            </div>
+
+            <div class="winners-grid" id="winnersGrid">
+                </div>
+
+            <div class="insights-card" id="insightsCard" style="display:none;">
+                <div class="insights-header">
+                    <div class="insights-icon">🧠</div>
+                    <h4>AI Analysis</h4>
+                    <span class="llm-badge" id="llmBadge">Rule-based</span>
+                </div>
+                <div class="insights-body" id="insightsBody"></div>
+            </div>
+
+            <h4 class="section-label">All Products</h4>
+            <div class="products-grid" id="productsGrid">
+                </div>
+        </section>
+
+        <section class="loading-section" id="loadingSection" style="display:none;">
+            <div class="loading-content">
+                <div class="loading-spinner">
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring"></div>
+                </div>
+                <h3 class="loading-title">Searching across platforms...</h3>
+                <div class="loading-steps">
+                    <div class="loading-step" id="step-amazon">
+                        <div class="step-dot"></div>
+                        <span>Worker 1 → Amazon (Selenium)</span>
+                    </div>
+                    <div class="loading-step" id="step-ebay">
+                        <div class="step-dot"></div>
+                        <span>Worker 2 → eBay (Scraping)</span>
+                    </div>
+                    <div class="loading-step" id="step-google">
+                        <div class="step-dot"></div>
+                        <span>Worker 3 → Google (SerpAPI)</span>
+                    </div>
+                    <div class="loading-step" id="step-walmart">
+                        <div class="step-dot"></div>
+                        <span>Worker 4 → Walmart (Scraping)</span>
+                    </div>
+                    <div class="loading-step" id="step-target">
+                        <div class="step-dot"></div>
+                        <span>Worker 5 → Target (SerpAPI)</span>
+                    </div>
+                    <div class="loading-step" id="step-analyze">
+                        <div class="step-dot"></div>
+                        <span>Normalizing &amp; Ranking</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="error-toast" id="errorToast" style="display:none;">
+            <div class="error-icon">⚠️</div>
+            <span class="error-message" id="errorMessage"></span>
+            <button class="error-close" onclick="hideError()">✕</button>
+        </div>
+
+        <aside class="history-panel" id="historyPanel">
+            <h4 class="history-title">Recent Searches</h4>
+            <div class="history-list" id="historyList">
+                </div>
+        </aside>
+    </main>
+
+    <footer class="footer">
+        <p>Built with FastAPI + Celery + Redis · Distributed Microservices Architecture · 5 Worker Nodes</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

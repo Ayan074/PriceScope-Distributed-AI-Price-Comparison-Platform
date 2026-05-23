@@ -1,0 +1,215 @@
+# PriceScope Distributed Deployment Guide (3 Machines)
+
+This guide explains how to run the PriceScope distributed computing
+project across 3 Ubuntu machines using Redis, Celery, FastAPI, and
+multiple microservices.
+
+------------------------------------------------------------------------
+
+## Architecture Overview
+
+### Machine 1
+
+-   Redis Server
+-   Gateway Service
+
+### Machine 2
+
+-   eBay Service
+-   Google Service
+
+### Machine 3
+
+-   Amazon Service
+-   Walmart Service
+-   Target Service
+-   Celery Workers
+
+------------------------------------------------------------------------
+
+## Step 1: Install Requirements on All Machines
+
+Open VS Code terminal in the project folder and run:
+
+``` bash
+python3 -m venv my_env
+source my_env/bin/activate
+pip install -r requirements.txt
+```
+
+Also install Redis on Machine 1:
+
+``` bash
+sudo apt update
+sudo apt install redis-server -y
+sudo systemctl start redis
+sudo systemctl enable redis
+redis-cli ping
+Open Redis config file:
+
+sudo nano /etc/redis/redis.conf
+
+Find this line:
+
+bind 127.0.0.1 ::1
+
+Change it to:
+
+bind 0.0.0.0
+
+Then find:
+
+protected-mode yes
+
+Change it to:
+
+protected-mode no
+
+Save file:
+
+Press CTRL + O
+Press Enter
+Press CTRL + X
+```
+
+------------------------------------------------------------------------
+
+## Step 2: Find IP Address of Each Machine
+
+Run on each machine:
+
+``` bash
+ip a
+```
+
+Find the IP under `inet`, for example:
+
+``` text
+172.20.xxx.xxx
+```
+
+Example mapping:
+
+-   Machine 1 → 172.20.251.59
+-   Machine 2 → 172.20.252.33
+-   Machine 3 → 172.20.251.29
+redis-cli -h 172.20.251.59 ping
+------------------------------------------------------------------------
+
+## Step 3: Configure `.env`
+
+### On All Machines
+
+``` env
+REDIS_URL=redis://172.20.251.59:6379
+GATEWAY_PORT=8080
+CELERY_RESULT_TIMEOUT=120
+```
+
+### Extra on Machine 1 (Gateway)
+
+``` env
+AMAZON_SERVICE_URL=http://172.20.251.29:8005
+EBAY_SERVICE_URL=http://172.20.252.33:8003
+GOOGLE_SERVICE_URL=http://172.20.252.33:8004
+WALMART_SERVICE_URL=http://172.20.251.29:8006
+TARGET_SERVICE_URL=http://172.20.251.29:8007
+```
+
+------------------------------------------------------------------------
+
+## Step 4: Run Machine 1
+
+### Start Redis
+
+``` bash
+redis-server
+```
+
+### Start Gateway
+
+``` bash
+uvicorn gateway.main:app --host 0.0.0.0 --port 8080
+```
+
+------------------------------------------------------------------------
+
+## Step 5: Run Machine 2
+
+### Start eBay Service
+
+``` bash
+uvicorn services.ebay.main:app --host 0.0.0.0 --port 8003
+```
+
+### Start Google Service
+
+``` bash
+uvicorn services.google.main:app --host 0.0.0.0 --port 8004
+```
+
+------------------------------------------------------------------------
+
+## Step 6: Run Machine 3
+
+### Start Amazon Service
+
+``` bash
+uvicorn services.amazon.main:app --host 0.0.0.0 --port 8005
+```
+
+### Start Walmart Service
+
+``` bash
+uvicorn services.walmart.main:app --host 0.0.0.0 --port 8006
+```
+
+### Start Target Service
+
+``` bash
+uvicorn services.target.main:app --host 0.0.0.0 --port 8007
+```
+
+------------------------------------------------------------------------
+
+## Step 7: Run Celery Workers on Machine 3
+
+### Worker 1 → Amazon only
+
+``` bash
+celery -A celery_app worker --loglevel=info --queues=amazon --hostname=worker1@machine3
+```
+
+### Worker 2 → eBay + Target
+
+``` bash
+celery -A celery_app worker --loglevel=info --queues=ebay,target --hostname=worker2@machine3
+```
+
+### Worker 3 → Google + Walmart
+
+``` bash
+celery -A celery_app worker --loglevel=info --queues=google,walmart --hostname=worker3@machine3
+```
+
+This setup prevents Amazon Selenium scraping from blocking other
+workers.
+
+------------------------------------------------------------------------
+
+## Step 8: Health Check
+
+Open in browser:
+
+``` text
+http://localhost:8080/api/health
+```
+
+Expected result:
+
+-   Amazon → healthy
+-   eBay → healthy
+-   Google → healthy
+-   Walmart → healthy
+-   Target → healthy
+
